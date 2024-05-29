@@ -2,7 +2,6 @@ import socket
 import threading
 import pygame
 import sys
-#from host import get_client_number
 
 
 class Client:
@@ -10,7 +9,6 @@ class Client:
 		self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.conn.connect((host, port))
 		self.messages = []
-		#self.numero = get_client_number(self.conn)
 
 		self.running = True
 		self.input_text = ""
