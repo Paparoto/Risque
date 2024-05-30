@@ -3,6 +3,44 @@ import threading
 
 clients = []
 
+class Pays:
+    def __init__(self, nom, liste_adjacents, position:tuple, troupes:int, rendement:int, couleur="blanc"):
+        self.nom = nom
+        self.liste_adjacents = liste_adjacents
+        self.position = position
+        self.troupes = troupes
+        self.rendement = rendement
+        self.couleur=couleur
+
+    def __str__(self):
+        return self.nom
+
+    def deplacement(self, autre_pays):
+        if autre_pays not in self.liste_adjacents :
+            return "impossible"
+        elif autre_pays.couleur == self.couleur:
+            autre_pays.troupes+= self.troupes
+            self.troupes=0
+        elif self.troupes<autre_pays.troupes:
+            autre_pays.troupes -= self.troupes
+            self.troupes = 0
+
+        elif self.troupes>autre_pays.troupes:
+            autre_pays.couleur = self.couleur
+            autre_pays.troupes = self.troupes - autre_pays.troupes
+            self.troupes=0
+
+        elif self.troupes == autre_pays.troupes:
+            self.troupes = 0
+            autre_pays.troupes = 0
+
+    def augmenter_armée(self):
+        if self.couleur == "blanc":
+            return
+        else:
+            self.troupes += self.rendement
+
+
 def broadcast(message, conn):
     for client in clients:
         if client != conn:
@@ -52,3 +90,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
