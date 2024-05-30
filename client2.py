@@ -2,6 +2,7 @@ import socket
 import threading
 import pygame
 import sys
+#from host import get_client_number
 
 
 class Client:
@@ -9,6 +10,7 @@ class Client:
 		self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.conn.connect((host, port))
 		self.messages = []
+		self.numero = 0
 
 		self.running = True
 		self.input_text = ""
@@ -27,6 +29,11 @@ class Client:
 		while self.running:
 			try:
 				message = self.conn.recv(1024).decode("utf-8")
+				if message==("Vous etes client1"):
+					self.numero=1
+				elif message==("Vous etes client2"):
+					self.numero=2
+
 				if message:
 					self.messages.append(message)
 			except:
