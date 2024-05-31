@@ -84,10 +84,11 @@ class Client:
 
 		self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.conn.connect((host, port))
-		self.messages = []
+		self.message = []
 		self.numero = 0
 		self.pays_clique=""
 		self.class_pays_clique=""
+
 
 		self.running = True
 		self.jeu = False
@@ -118,6 +119,10 @@ class Client:
 				elif message==("start"):
 					self.jeu=True
 
+				for i in range(len(liste_noms)):
+					for j in range(len(liste_noms)):
+						if message==(liste_noms[i]+"-"+liste_noms[j]):
+							self.message=(liste_noms[i]+"-"+liste_noms[j])
 
 			except:
 				self.running = False
@@ -199,6 +204,14 @@ class Client:
 						pygame.quit()
 						sys.exit()
 
+			for i in range(len(liste_noms)):
+				for j in range(len(liste_noms)):
+					if self.message == (liste_noms[i] + "-" + liste_noms[j]):
+						liste[j].troupes-=liste[i].troupes
+
+						if liste[j].troupes<0:
+							liste[j].couleur="blue"
+							liste[j].troupes=-liste[j].troupes
 
 			def afficher(self, nom, couleur, rect, troupes, taille):
 				position=rect[0]
