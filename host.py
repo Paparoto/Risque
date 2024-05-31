@@ -16,13 +16,11 @@ def handle_client(conn):
             message = conn.recv(1024)
             msg=message.decode("utf-8")
             if msg=="pret":
-                pret.append(conn)
-
-            if len(pret)==2:
-                start = "start"
-                start = start.encode("utf-8")
-                for conn in clients:
-                    conn.send(start)
+                if conn == clients[1]:
+                    start = "start"
+                    start = start.encode("utf-8")
+                    for conn in clients:
+                        conn.send(start)
 
             message=msg.encode("utf-8")
             print(msg)
