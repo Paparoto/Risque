@@ -118,14 +118,14 @@ class Client:
 				elif message==("start"):
 					self.jeu=True
 
-				for nom in range(len(liste_noms)):
-					for nom2 in range(len(liste_noms)):
-						if message==(liste_noms[nom] + "-" + liste_noms[nom2]):
-							self.attaque_adverse(liste[nom], liste[nom2])
-						elif message==(liste_noms[nom] + "+" + liste_noms[nom2]):
-							self.defence_adverse(liste[nom], liste[nom2])
+
 			except:
 				self.running = False
+
+		
+	def defence_adverse(self, defenseur, defendu):
+		defendu.troupes += defenseur.troupes
+		defenseur.troupes = 0
 
 	def mainloop(self):
 		while self.running:
@@ -167,7 +167,6 @@ class Client:
 											attaquant = self.pays_clique.encode("utf-8")
 											attaqué = nom.encode("utf-8")
 											attaque_log = attaquant + b"-" + attaqué
-											print(attaque_log)
 											self.conn.send(attaque_log)
 											self.pays_clique=""
 										elif pays.couleur==self.numero and self.pays_clique in pays.liste_adjacents:
@@ -178,9 +177,9 @@ class Client:
 											defendu=nom.encode("utf-8")
 											defenseur=self.pays_clique.encode("utf-8")
 											defense_log=defenseur+b"+"+defendu
-											print(defense_log)
 											self.conn.send(defense_log)
 											self.pays_clique = ""
+
 
 
 				if event.type == pygame.QUIT:
@@ -222,22 +221,7 @@ class Client:
 
 			pygame.display.flip()
 
-	def attaque_adverse(self, attaquant, attaqué):
-		attaqué.troupes -= attaquant.troupes
-		if attaqué.troupes < 0:
-			if attaquant.couleur == "red":
-				attaqué.couleur = "red"
 
-
-			elif self.class_pays_clique.couleur == "blue":
-				attaqué.couleur = "blue"
-
-
-		attaquant.troupes = 0
-
-	def defence_adverse(self, defenseur, defendu):
-		defendu.troupes += defenseur.troupes
-		defenseur.troupes = 0
 
 
 if __name__ == "__main__":
