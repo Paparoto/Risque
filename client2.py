@@ -88,7 +88,7 @@ liste_noms = (
 class Client:
     def __init__(self, host, port):
         global screen
-
+        self.start_boutton=pygame.Rect((450, 460), (650, 260))
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect((host, port))
         self.message = []
@@ -107,8 +107,18 @@ class Client:
         pygame.display.set_caption("Client")
         self.font = pygame.font.Font(None, 30)
         self.fond = pygame.image.load('asset/Map.jpg')
+        self.Menu_image=pygame.image.load('asset/Menu.jpg')
+        self.Victoire_image=pygame.image.load('asset/Victoire.jpg')
+        self.Defaite = pygame.image.load('asset/Defaite.jpg')
         self.fond = self.fond.convert()
         self.fond = pygame.transform.scale(self.fond, (1510, 780))
+
+        self.Menu_image = self.Menu_image.convert()
+        self.Menu_image = pygame.transform.scale(self.Menu_image, (1410, 750))
+        self.Victoire_image = self.Victoire_image.convert()
+        self.Victoire_image = pygame.transform.scale(self.Victoire_image, (1410, 750))
+        self.Defaite = self.Defaite.convert()
+        self.Defaite = pygame.transform.scale(self.Defaite, (1410, 750))
 
         self.thread_receive = threading.Thread(target=self.receive_messages)
         self.thread_receive.start()
@@ -240,12 +250,15 @@ class Client:
                 affiche_troupes = police2.render(troupes, 1, couleur)
                 self.screen.blit(affiche_nom, position)
                 self.screen.blit(affiche_troupes, (position[0] + distance[0] / 2 - 38, position[1] + distance[1] / 2))
+            if not self.jeu:
+                self.screen.blit(self.Menu_image, (100, 60))
+                #pygame.draw.rect(self.screen, "black", self.start_boutton, 10)
 
-            self.screen.blit(self.fond, (0, 0))
-
-            for pays in liste:
-                afficher(self, pays.nom, pays.couleur, pays.rect, str(pays.troupes), pays.taille)
-            # pygame.draw.rect(self.screen, "black", pays.rect, 10)
+            if self.jeu:
+                self.screen.blit(self.fond, (0, 0))
+                for pays in liste:
+                    afficher(self, pays.nom, pays.couleur, pays.rect, str(pays.troupes), pays.taille)
+                    # pygame.draw.rect(self.screen, "black", pays.rect, 10)
 
             pygame.display.flip()
 
