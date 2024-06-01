@@ -107,7 +107,7 @@ class Client:
         pygame.init()
         pygame.mixer.init()
         self.screen = pygame.display.set_mode((1620, 860))
-        pygame.display.set_caption("Client")
+        pygame.display.set_caption("Risque")
         self.font = pygame.font.Font(None, 30)
         self.cavalier = pygame.image.load("asset/cavalier.png")
         self.cavalier_ennemi = pygame.image.load("asset/cavalier_ennemi.png")
@@ -413,6 +413,9 @@ class Client:
 
             if self.jeu and not self.D and not self.V:
                 self.screen.blit(self.fond, (0, 0))
+                police_team = pygame.font.SysFont("TXTLIB", 150)
+                affichage_team = police_team.render(self.numero, 1, self.numero)
+                self.screen.blit(affichage_team, (500,100))
                 for pays in liste:
                     afficher(self, pays.nom, pays.couleur, pays.rect, str(pays.troupes), pays.taille)
                 self.update_square()
