@@ -105,6 +105,7 @@ class Client:
         self.input_text = ""
 
         pygame.init()
+        pygame.mixer.init()
         self.screen = pygame.display.set_mode((1620, 860))
         pygame.display.set_caption("Client")
         self.font = pygame.font.Font(None, 30)
@@ -118,6 +119,20 @@ class Client:
         self.fond = pygame.transform.scale(self.fond, (1510, 780))
         self.cavalier = pygame.transform.scale(self.cavalier, (80, 80))
         self.cavalier_ennemi = pygame.transform.scale(self.cavalier_ennemi, (80, 80))
+
+
+        pygame.mixer.music.load("asset/march-of-thousand-battles-123153.mp3")
+        pygame.mixer.music.play(-1)
+
+        pygame.mixer.set_num_channels(2)
+        self.cheval= pygame.mixer.Sound("asset/cheval.mp3")
+        self.combat = pygame.mixer.Sound("asset/battle.mp3")
+        self.canal_1 = pygame.mixer.Channel(0)
+        self.canal_2 = pygame.mixer.Channel(1)
+        self.cheval.set_volume(100)
+
+
+
 
         self.Menu_image = self.Menu_image.convert()
         self.Menu_image = pygame.transform.scale(self.Menu_image, (1410, 750))
@@ -163,6 +178,7 @@ class Client:
     def update_square2(self):
         try:
             if self.square2_pos and self.square2_end_pos and self.square2_start_time:
+                self.canal_2.play(self.cheval)
                 current_time = time.time()
                 elapsed_time = current_time - self.square2_start_time
                 if elapsed_time > self.square2_duree:
@@ -200,6 +216,7 @@ class Client:
     def update_square(self):
         try:
             if self.square_pos and self.square_end_pos and self.square_start_time:
+                self.canal_1.play(self.cheval)
                 current_time = time.time()
                 elapsed_time = current_time - self.square_start_time
                 if elapsed_time > self.square_duree:
@@ -234,6 +251,7 @@ class Client:
         if class_pays_clique.couleur != pays.couleur:
 
             time.sleep(10)
+            self.canal_2.play(self.combat)
             pays.troupes -= troupes_cavalier
             if pays.troupes < 0:
                 if class_pays_clique.couleur == "red":
@@ -260,6 +278,7 @@ class Client:
 
     def mainloop(self):
         while self.running:
+
             if self.jeu:
                 potentiellement_perdu_rouge = 0
                 potentiellement_perdu_bleu=0
@@ -305,6 +324,8 @@ class Client:
                                         else:
                                             if pays.couleur != self.numero and self.pays_clique in pays.liste_adjacents:
                                                 self.deplacement = True
+                                                self.canal_2.play(self.cheval)
+
                                                 self.deplacer_carre(self.class_pays_clique.rect[0], pays.rect[0])
                                                 threading.Thread(target=self.delay,
                                                                  args=(self.class_pays_clique, pays,)).start()
