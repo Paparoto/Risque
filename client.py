@@ -210,7 +210,16 @@ class Client:
                     self.jeu = False
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        pos = pygame.mouse.get_pos()
 
+                        rect_boutton = pygame.Rect(self.start_boutton)
+
+                        if rect_boutton.collidepoint(pos):
+                            message = "pret"
+                            message = message.encode("utf-8")
+                            self.conn.send(message)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         message = "pret"
