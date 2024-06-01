@@ -61,23 +61,23 @@ class Pays:
 
 
 UK = Pays("UK", ("France", "Allemagne"), ((400, 250), (90, 80)), 100, 20, "rouge", 50)
-France = Pays("France", ("UK", "Allemagne", "Italie", "Espagne"), ((430, 400), (165, 80)), 100, 25, "blanc", 40)
-Espagne = Pays("Espagne", ("France"), ((260, 580), (180, 80)), 100, 25, "blanc", 40)
+France = Pays("France", ("UK", "Allemagne", "Italie", "Espagne"), ((430, 400), (165, 80)), 100, 25, "blanc", 50)
+Espagne = Pays("Espagne", ("France"), ((260, 580), (180, 80)), 100, 25, "blanc", 50)
 Allemagne = Pays("Allemagne", ("France", "Italie", "UK", "Autriche", "Pologne"), ((560, 300), (190, 70)), 100, 25,
-                 "blanc", 35)
-Italie = Pays("Italie", ("France", "Allemagne", "Autriche"), ((600, 460), (140, 70)), 100, 25, "blanc", 36)
+                 "blanc", 45)
+Italie = Pays("Italie", ("France", "Allemagne", "Autriche"), ((600, 460), (140, 70)), 100, 25, "blanc", 46)
 Pologne = Pays("Pologne", ("Allemagne", "Autriche", "Ukraine", "Estonie"), ((780, 260), (165, 70)), 100, 25, "blanc",
-               40)
+               50)
 Autriche = Pays("Autriche", ("Allemagne", "Grece", "Ukraine", "Serbie", "Italie", "Pologne"), ((760, 390), (170, 70)),
-                100, 25, "blanc", 36)
+                100, 25, "blanc", 46)
 Serbie = Pays("Serbie", ("Autriche", "Grece", "Ukraine", "Serbie", "Estonie", "Pologne"), ((940, 440), (140, 70)), 100,
-              25, "blanc", 36)
-Grece = Pays("Grece", ("Autriche", "Serbie", "Turquie"), ((920, 560), (150, 70)), 100, 25, "blanc", 40)
-Estonie = Pays("Estonie", ("Pologne", "Russie", "Ukraine"), ((950, 200), (150, 70)), 100, 25, "blanc", 36)
-Russie = Pays("Russie", ("Estonie", "Turquie", "Ukraine"), ((1200, 220), (185, 80)), 100, 25, "blanc", 50)
+              25, "blanc", 46)
+Grece = Pays("Grece", ("Autriche", "Serbie", "Turquie"), ((920, 560), (150, 70)), 100, 25, "blanc", 50)
+Estonie = Pays("Estonie", ("Pologne", "Russie", "Ukraine"), ((950, 200), (150, 70)), 100, 25, "blanc", 46)
+Russie = Pays("Russie", ("Estonie", "Turquie", "Ukraine"), ((1200, 220), (185, 80)), 100, 25, "blanc", 60)
 Ukraine = Pays("Ukraine", ("Estonie", "Serbie", "Pologne", "Russie", "Autriche"), ((1050, 355), (185, 70)), 100, 25,
-               "blanc", 45)
-Turquie = Pays("Turquie", ("Gece", "Russie"), ((1150, 640), (190, 85)), 100, 25, "bleu", 45)
+               "blanc", 55)
+Turquie = Pays("Turquie", ("Grece", "Russie"), ((1150, 640), (190, 85)), 100, 25, "bleu", 55)
 
 liste = (UK, France, Espagne, Allemagne, Italie, Pologne, Autriche, Serbie, Grece, Estonie, Russie, Ukraine, Turquie)
 liste_noms = (
@@ -95,7 +95,8 @@ class Client:
         self.numero = 0
         self.pays_clique = ""
         self.class_pays_clique = ""
-
+        self.V=False
+        self.D=False
         self.attaque = False
         self.deplacement = False
         self.deplacement_adverse = False
@@ -134,13 +135,13 @@ class Client:
         while self.running:
             try:
                 message = self.conn.recv(1024).decode("utf-8")
-                print(message)
                 if message == ("Vous etes client1"):
                     self.numero = "red"
                 elif message == ("Vous etes client2"):
                     self.numero = "blue"
                 elif message == ("start"):
                     self.jeu = True
+
 
                 for i in range(len(liste_noms)):
                     for j in range(len(liste_noms)):
@@ -260,9 +261,30 @@ class Client:
     def mainloop(self):
         while self.running:
             if self.jeu:
+                potentiellement_perdu_rouge = 0
+                potentiellement_perdu_bleu=0
                 for pays in liste:
                     pays.thread = threading.Thread(target=pays.augmenter_armee)
                     pays.thread.start()
+
+
+                    if pays.couleur=="red":
+                        potentiellement_perdu_rouge+=1
+
+
+                    if pays.couleur=="blue":
+                        potentiellement_perdu_bleu +=1
+
+                    if potentiellement_perdu_rouge == len(liste):
+                        if self.numero == 'red':
+                            self.V=True
+                        elif self.numero == "blue":
+                            self.D=True
+                    if potentiellement_perdu_bleu  == len(liste):
+                        if self.numero == "blue":
+                            self.V=True
+                        elif self.numero == "red":
+                            self.D=True
 
             for event in pygame.event.get():
                 if self.jeu:
@@ -352,18 +374,23 @@ class Client:
             def afficher(self, nom, couleur, rect, troupes, taille):
                 position = rect[0]
                 distance = rect[1]
-                police = pygame.font.SysFont("monospace", taille)
-                police2 = pygame.font.SysFont("monospace", 25)
+                police = pygame.font.SysFont("PYHIERO", taille)
+                police2 = pygame.font.SysFont("PYHIERO", 25)
                 affiche_nom = police.render(nom, 1, couleur)
                 affiche_troupes = police2.render(troupes, 1, couleur)
                 self.screen.blit(affiche_nom, position)
                 self.screen.blit(affiche_troupes, (position[0] + distance[0] / 2 - 38, position[1] + distance[1] / 2))
 
-            if not self.jeu:
+            if not self.jeu and not self.D and not self.V:
                 self.screen.blit(self.Menu_image, (100, 60))
                 # pygame.draw.rect(self.screen, "black", self.start_boutton, 10)
 
-            if self.jeu:
+            if self.D:
+                self.screen.blit(self.Defaite, (100, 60))
+            if self.V:
+                self.screen.blit(self.Victoire_image, (100, 60))
+
+            if self.jeu and not self.D and not self.V:
                 self.screen.blit(self.fond, (0, 0))
                 for pays in liste:
                     afficher(self, pays.nom, pays.couleur, pays.rect, str(pays.troupes), pays.taille)
