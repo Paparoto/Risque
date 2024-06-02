@@ -4,8 +4,96 @@ import pygame
 import sys
 import time
 
-
 # from host import get_client_number
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+
+# Classe pour représenter un Cube
+class Cube:
+    def __init__(self, start_pos, end_pos, speed, attaquant, attaqué, couleur, cavalier):
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.position = list(start_pos)
+        self.speed = 2
+        self.cavalier = pygame.image.load("asset/cavalier.png")
+        self.cavalier_ennemi = pygame.image.load("asset/cavalier_ennemi.png")
+        self.cavalier = pygame.transform.scale(self.cavalier, (80, 80))
+        self.cavalier_ennemi = pygame.transform.scale(self.cavalier_ennemi, (80, 80))
+        self.attaqué = attaqué
+        self.attaquant = attaquant
+        self.couleur = couleur
+        self.troupes_cavalier = cavalier
+        pygame.mixer.set_num_channels(2)
+        self.cheval = pygame.mixer.Sound("asset/cheval.mp3")
+        self.combat = pygame.mixer.Sound("asset/battle.mp3")
+        self.canal_1 = pygame.mixer.Channel(0)
+        self.canal_2 = pygame.mixer.Channel(1)
+        self.cheval.set_volume(100)
+        self.attaque = True
+
+    def has_reached_destination(self):
+
+        if self.position[0] == self.end_pos[0] and self.position[1] == self.end_pos[1]:
+            if self.attaque:
+                if self.attaquant.couleur != self.attaqué.couleur:
+
+                    # time.sleep(10)
+                    self.canal_2.play(self.combat)
+                    self.attaqué.troupes -= self.troupes_cavalier
+                    if self.attaqué.troupes < 0:
+                        if self.attaquant.couleur == "red":
+                            self.attaqué.couleur = "red"
+                            self.attaqué.troupes = -self.attaqué.troupes
+                        elif self.attaquant.couleur == "blue":
+                            self.attaqué.couleur = "blue"
+                            self.attaqué.troupes = -self.attaqué.troupes
+                    self.attaque = False
+                elif self.attaqué.couleur == self.attaquant.couleur and self.attaquant.nom in self.attaqué.liste_adjacents:
+                    self.attaqué.troupes += self.troupes_cavalier
+                    self.attaque = False
+            return True
+        return False
+
+    def update(self):
+        # Calculer le vecteur de déplacement
+        direction = [self.end_pos[0] - self.start_pos[0], self.end_pos[1] - self.start_pos[1]]
+        distance = (direction[0] ** 2 + direction[1] ** 2) ** 0.5
+        if distance == 0:
+            return
+
+        # Normaliser le vecteur de direction
+        direction[0] /= distance
+        direction[1] /= distance
+
+        # Déplacer le cube
+        self.position[0] += direction[0] * self.speed
+        self.position[1] += direction[1] * self.speed
+
+        # Vérifier si le cube a atteint ou dépassé la position finale
+        if (direction[0] > 0 and self.position[0] >= self.end_pos[0]) or \
+                (direction[0] < 0 and self.position[0] <= self.end_pos[0]):
+            self.position[0] = self.end_pos[0]
+
+        if (direction[1] > 0 and self.position[1] >= self.end_pos[1]) or \
+                (direction[1] < 0 and self.position[1] <= self.end_pos[1]):
+            self.position[1] = self.end_pos[1]
+
+    def draw(self, surface):
+        if self.couleur == "red":
+            surface.blit(self.cavalier, (self.position[0], self.position[1]))
+        elif self.couleur == "blue":
+            surface.blit(self.cavalier_ennemi, (self.position[0], self.position[1]))
+
+
+# Liste pour stocker les cubes
+cubes = []
+
+
+def create_moving_cube(start_pos, end_pos, speed, attaquant, attaqué, couleur, cavalier):
+    cube = Cube(start_pos, end_pos, speed, attaquant, attaqué, couleur, cavalier)
+    cubes.append(cube)
 
 
 class Pays:
@@ -60,24 +148,24 @@ class Pays:
         self.thread.join()
 
 
-UK = Pays("UK", ("France", "Allemagne"), ((400, 250), (90, 80)), 100, 20, "rouge", 50)
-France = Pays("France", ("UK", "Allemagne", "Italie", "Espagne"), ((430, 400), (165, 80)), 100, 25, "blanc", 50)
-Espagne = Pays("Espagne", ("France"), ((260, 580), (180, 80)), 100, 25, "blanc", 50)
-Allemagne = Pays("Allemagne", ("France", "Italie", "UK", "Autriche", "Pologne"), ((560, 300), (190, 70)), 100, 25,
+UK = Pays("UK", ("France", "Allemagne"), ((400, 250), (90, 80)), 100, 10, "rouge", 50)
+France = Pays("France", ("UK", "Allemagne", "Italie", "Espagne"), ((430, 400), (165, 80)), 100, 10, "blanc", 50)
+Espagne = Pays("Espagne", ("France"), ((260, 580), (180, 80)), 100, 10, "blanc", 50)
+Allemagne = Pays("Allemagne", ("France", "Italie", "UK", "Autriche", "Pologne"), ((560, 300), (190, 70)), 100, 10,
                  "blanc", 45)
-Italie = Pays("Italie", ("France", "Allemagne", "Autriche"), ((600, 460), (140, 70)), 100, 25, "blanc", 46)
-Pologne = Pays("Pologne", ("Allemagne", "Autriche", "Ukraine", "Estonie"), ((780, 260), (165, 70)), 100, 25, "blanc",
+Italie = Pays("Italie", ("France", "Allemagne", "Autriche"), ((600, 460), (140, 70)), 100, 10, "blanc", 46)
+Pologne = Pays("Pologne", ("Allemagne", "Autriche", "Ukraine", "Estonie"), ((780, 260), (165, 70)), 100, 10, "blanc",
                50)
 Autriche = Pays("Autriche", ("Allemagne", "Grece", "Ukraine", "Serbie", "Italie", "Pologne"), ((760, 390), (170, 70)),
-                100, 25, "blanc", 46)
+                100, 20, "blanc", 46)
 Serbie = Pays("Serbie", ("Autriche", "Grece", "Ukraine", "Serbie", "Estonie", "Pologne"), ((940, 440), (140, 70)), 100,
-              25, "blanc", 46)
-Grece = Pays("Grece", ("Autriche", "Serbie", "Turquie"), ((920, 560), (150, 70)), 100, 25, "blanc", 50)
-Estonie = Pays("Estonie", ("Pologne", "Russie", "Ukraine"), ((950, 200), (150, 70)), 100, 25, "blanc", 46)
-Russie = Pays("Russie", ("Estonie", "Turquie", "Ukraine"), ((1200, 220), (185, 80)), 100, 25, "blanc", 60)
-Ukraine = Pays("Ukraine", ("Estonie", "Serbie", "Pologne", "Russie", "Autriche"), ((1050, 355), (185, 70)), 100, 25,
+              10, "blanc", 46)
+Grece = Pays("Grece", ("Autriche", "Serbie", "Turquie"), ((920, 560), (150, 70)), 100, 10, "blanc", 50)
+Estonie = Pays("Estonie", ("Pologne", "Russie", "Ukraine"), ((950, 200), (150, 70)), 100, 10, "blanc", 46)
+Russie = Pays("Russie", ("Estonie", "Turquie", "Ukraine"), ((1200, 220), (185, 80)), 100, 10, "blanc", 60)
+Ukraine = Pays("Ukraine", ("Estonie", "Serbie", "Pologne", "Russie", "Autriche"), ((1050, 355), (185, 70)), 100, 10,
                "blanc", 55)
-Turquie = Pays("Turquie", ("Grece", "Russie"), ((1150, 640), (190, 85)), 100, 25, "bleu", 55)
+Turquie = Pays("Turquie", ("Grece", "Russie"), ((1150, 640), (190, 85)), 100, 10, "bleu", 55)
 
 liste = (UK, France, Espagne, Allemagne, Italie, Pologne, Autriche, Serbie, Grece, Estonie, Russie, Ukraine, Turquie)
 liste_noms = (
@@ -87,7 +175,7 @@ liste_noms = (
 
 class Client:
     def __init__(self, host, port):
-        global screen
+        global numero
         self.start_boutton = pygame.Rect((450, 460), (650, 260))
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect((host, port))
@@ -95,14 +183,16 @@ class Client:
         self.numero = 0
         self.pays_clique = ""
         self.class_pays_clique = ""
-        self.V=False
-        self.D=False
+        self.V = False
+        self.D = False
         self.attaque = False
         self.deplacement = False
         self.deplacement_adverse = False
         self.running = True
         self.jeu = False
+        self.chargement=False
         self.input_text = ""
+        self.cubes = cubes
 
         pygame.init()
         pygame.mixer.init()
@@ -120,19 +210,15 @@ class Client:
         self.cavalier = pygame.transform.scale(self.cavalier, (80, 80))
         self.cavalier_ennemi = pygame.transform.scale(self.cavalier_ennemi, (80, 80))
 
-
         pygame.mixer.music.load("asset/march-of-thousand-battles-123153.mp3")
         pygame.mixer.music.play(-1)
 
         pygame.mixer.set_num_channels(2)
-        self.cheval= pygame.mixer.Sound("asset/cheval.mp3")
+        self.cheval = pygame.mixer.Sound("asset/cheval.mp3")
         self.combat = pygame.mixer.Sound("asset/battle.mp3")
         self.canal_1 = pygame.mixer.Channel(0)
         self.canal_2 = pygame.mixer.Channel(1)
         self.cheval.set_volume(100)
-
-
-
 
         self.Menu_image = self.Menu_image.convert()
         self.Menu_image = pygame.transform.scale(self.Menu_image, (1410, 750))
@@ -157,7 +243,6 @@ class Client:
                 elif message == ("start"):
                     self.jeu = True
 
-
                 for i in range(len(liste_noms)):
                     for j in range(len(liste_noms)):
                         if message == (liste_noms[i] + "-" + liste_noms[j]):
@@ -169,141 +254,32 @@ class Client:
             except:
                 self.running = False
 
-    def deplacer_carre2(self, start_pos, end_pos, duree=10):
-        self.square2_pos = start_pos
-        self.square2_end_pos = end_pos
-        self.square2_start_time = time.time()
-        self.square2_duree = duree
-
-    def update_square2(self):
-        try:
-            if self.square2_pos and self.square2_end_pos and self.square2_start_time:
-                self.canal_2.play(self.cheval)
-                current_time = time.time()
-                elapsed_time = current_time - self.square2_start_time
-                if elapsed_time > self.square2_duree:
-                    elapsed_time = self.square2_duree
-
-                t = elapsed_time / self.square2_duree
-
-                x_depart, y_depart = self.square2_pos
-                x_arrivee, y_arrivee = self.square2_end_pos
-
-                x_courant = x_depart + (x_arrivee - x_depart) * t
-                y_courant = y_depart + (y_arrivee - y_depart) * t
-
-                # pygame.draw.rect(self.screen, (0, 0, 250), (x_courant, y_courant, 10, 10))
-                if self.numero == "red":
-                    self.screen.blit(self.cavalier_ennemi, (x_courant, y_courant))
-                else:
-                    self.screen.blit(self.cavalier, (x_courant, y_courant))
-                pygame.display.flip()
-
-                if elapsed_time >= self.square2_duree:
-                    self.square2_pos = None
-                    self.square2_end_pos = None
-                    self.square2_start_time = None
-                    self.square2_duree = None
-        except:
-            pass
-
-    def deplacer_carre(self, start_pos, end_pos, duree=10):
-        self.square_pos = start_pos
-        self.square_end_pos = end_pos
-        self.square_start_time = time.time()
-        self.square_duree = duree
-
-    def update_square(self):
-        try:
-            if self.square_pos and self.square_end_pos and self.square_start_time:
-                self.canal_1.play(self.cheval)
-                current_time = time.time()
-                elapsed_time = current_time - self.square_start_time
-                if elapsed_time > self.square_duree:
-                    elapsed_time = self.square_duree
-
-                t = elapsed_time / self.square_duree
-
-                x_depart, y_depart = self.square_pos
-                x_arrivee, y_arrivee = self.square_end_pos
-
-                x_courant = x_depart + (x_arrivee - x_depart) * t
-                y_courant = y_depart + (y_arrivee - y_depart) * t
-
-                # pygame.draw.rect(self.screen, (255, 0, 0), (x_courant, y_courant, 10, 10))
-                if self.numero == "blue":
-                    self.screen.blit(self.cavalier_ennemi, (x_courant, y_courant))
-                else:
-                    self.screen.blit(self.cavalier, (x_courant, y_courant))
-
-                pygame.display.flip()
-
-                if elapsed_time >= self.square_duree:
-                    self.square_pos = None
-                    self.square_end_pos = None
-                    self.square_start_time = None
-                    self.square_duree = None
-        except:
-            pass
-
-    def delay(self, class_pays_clique, pays):
-        troupes_cavalier = class_pays_clique.troupes
-        if class_pays_clique.couleur != pays.couleur:
-
-            time.sleep(10)
-            self.canal_2.play(self.combat)
-            pays.troupes -= troupes_cavalier
-            if pays.troupes < 0:
-                if class_pays_clique.couleur == "red":
-                    pays.couleur = "red"
-                    pays.troupes = -pays.troupes
-                elif class_pays_clique.couleur == "blue":
-                    pays.couleur = "blue"
-                    pays.troupes = -pays.troupes
-            if self.numero == class_pays_clique.couleur:
-                self.deplacement = False
-            else:
-                self.deplacement_adverse = False
-        elif pays.couleur == class_pays_clique.couleur and class_pays_clique.nom in pays.liste_adjacents:
-            time.sleep(10)
-            pays.troupes += troupes_cavalier
-            if self.numero == class_pays_clique.couleur:
-                self.deplacement = False
-            else:
-                self.deplacement_adverse = False
-
-    def defence_adverse(self, defenseur, defendu):
-        defendu.troupes += defenseur.troupes
-        defenseur.troupes = 0
-
     def mainloop(self):
         while self.running:
 
             if self.jeu:
                 potentiellement_perdu_rouge = 0
-                potentiellement_perdu_bleu=0
+                potentiellement_perdu_bleu = 0
                 for pays in liste:
                     pays.thread = threading.Thread(target=pays.augmenter_armee)
                     pays.thread.start()
 
+                    if pays.couleur == "red":
+                        potentiellement_perdu_rouge += 1
 
-                    if pays.couleur=="red":
-                        potentiellement_perdu_rouge+=1
-
-
-                    if pays.couleur=="blue":
-                        potentiellement_perdu_bleu +=1
+                    if pays.couleur == "blue":
+                        potentiellement_perdu_bleu += 1
 
                     if potentiellement_perdu_rouge == len(liste):
                         if self.numero == 'red':
-                            self.V=True
+                            self.V = True
                         elif self.numero == "blue":
-                            self.D=True
-                    if potentiellement_perdu_bleu  == len(liste):
+                            self.D = True
+                    if potentiellement_perdu_bleu == len(liste):
                         if self.numero == "blue":
-                            self.V=True
+                            self.V = True
                         elif self.numero == "red":
-                            self.D=True
+                            self.D = True
 
             for event in pygame.event.get():
                 if self.jeu:
@@ -323,12 +299,13 @@ class Client:
 
                                         else:
                                             if pays.couleur != self.numero and self.pays_clique in pays.liste_adjacents:
-                                                self.deplacement = True
-                                                self.canal_2.play(self.cheval)
+                                                # self.deplacement = True
+                                                cavalier = self.class_pays_clique.troupes
 
-                                                self.deplacer_carre(self.class_pays_clique.rect[0], pays.rect[0])
-                                                threading.Thread(target=self.delay,
-                                                                 args=(self.class_pays_clique, pays,)).start()
+                                                create_moving_cube(self.class_pays_clique.rect[0], pays.rect[0], 5,
+                                                                   self.class_pays_clique, pays,
+                                                                   self.class_pays_clique.couleur, cavalier)
+
                                                 self.class_pays_clique.troupes = 0
 
                                                 nom = pays.nom
@@ -338,12 +315,12 @@ class Client:
                                                 self.conn.send(attaque_log)
                                                 self.pays_clique = ""
                                             elif pays.couleur == self.numero and self.pays_clique in pays.liste_adjacents:
-                                                self.deplacement = True
-                                                self.deplacer_carre(self.class_pays_clique.rect[0], pays.rect[0])
-                                                threading.Thread(target=self.delay,
-                                                                 args=(self.class_pays_clique, pays,)).start()
-                                                self.class_pays_clique.troupes = 0
+                                                cavalier = self.class_pays_clique.troupes
+                                                create_moving_cube(self.class_pays_clique.rect[0], pays.rect[0], 5,
+                                                                   self.class_pays_clique, pays,
+                                                                   self.class_pays_clique.couleur, cavalier)
 
+                                                self.class_pays_clique.troupes = 0
                                                 nom = pays.nom
                                                 defendu = nom.encode("utf-8")
                                                 defenseur = self.pays_clique.encode("utf-8")
@@ -363,9 +340,11 @@ class Client:
                         rect_boutton = pygame.Rect(self.start_boutton)
 
                         if rect_boutton.collidepoint(pos):
-                            message = "pret"
-                            message = message.encode("utf-8")
-                            self.conn.send(message)
+                            if not self.jeu:
+                                message = "pret"
+                                message = message.encode("utf-8")
+                                self.conn.send(message)
+                                self.chargement=True
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         message = "pret"
@@ -380,15 +359,17 @@ class Client:
                 for i in range(len(liste_noms)):
                     for j in range(len(liste_noms)):
                         if self.message == (liste_noms[i] + "-" + liste_noms[j]):
-                            self.deplacement_adverse = True
-                            self.deplacer_carre2(liste[i].rect[0], liste[j].rect[0])
-                            threading.Thread(target=self.delay, args=(liste[i], liste[j],)).start()
+                            cavalier = liste[i].troupes
+                            create_moving_cube(liste[i].rect[0], liste[j].rect[0], 5,
+                                               liste[i], liste[j],
+                                               liste[i].couleur, cavalier)
                             liste[i].troupes = 0
                             self.attaque = False
                         if self.message == (liste_noms[i] + "+" + liste_noms[j]):
-                            self.deplacement_adverse = True
-                            self.deplacer_carre2(liste[i].rect[0], liste[j].rect[0])
-                            threading.Thread(target=self.delay, args=(liste[i], liste[j],)).start()
+                            cavalier = liste[i].troupes
+                            create_moving_cube(liste[i].rect[0], liste[j].rect[0], 5,
+                                               liste[i], liste[j],
+                                               liste[i].couleur, cavalier)
                             liste[i].troupes = 0
                             self.attaque = False
 
@@ -404,6 +385,11 @@ class Client:
 
             if not self.jeu and not self.D and not self.V:
                 self.screen.blit(self.Menu_image, (100, 60))
+                if self.chargement:
+                    police = pygame.font.SysFont("PYHIERO", 100)
+                    message="En attente d'un deuxieme joeueur"
+                    affichage = police.render(message, 1, "black")
+                    self.screen.blit(affichage, (180, 730))
                 # pygame.draw.rect(self.screen, "black", self.start_boutton, 10)
 
             if self.D:
@@ -413,14 +399,22 @@ class Client:
 
             if self.jeu and not self.D and not self.V:
                 self.screen.blit(self.fond, (0, 0))
-                police_team = pygame.font.SysFont("TXTLIB", 150)
+                police_team = pygame.font.SysFont("TXTLIB", 100)
                 affichage_team = police_team.render(self.numero, 1, self.numero)
-                self.screen.blit(affichage_team, (500,100))
+                self.screen.blit(affichage_team, (180, 80))
+
+                police = pygame.font.SysFont("PYHIERO", 60)
+                affichage = police.render(self.pays_clique, 1, self.numero)
+                self.screen.blit(affichage, (180, 730))
                 for pays in liste:
                     afficher(self, pays.nom, pays.couleur, pays.rect, str(pays.troupes), pays.taille)
-                self.update_square()
-                self.update_square2()
+
                 # pygame.draw.rect(self.screen, "black", pays.rect, 10)
+            cubes = [cube for cube in self.cubes if not cube.has_reached_destination()]
+            for cube in cubes:
+                cube.update()
+            for cube in cubes:
+                cube.draw(self.screen)
 
             pygame.display.flip()
 
